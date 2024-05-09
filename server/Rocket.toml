@@ -1,0 +1,5 @@
+[global]
+port = 8080
+
+[default]
+workers = 1
