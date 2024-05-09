@@ -64,7 +64,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for HiveSocket {
             }
             Ok(ws::Message::Text(text)) => {
                 // echo back to caller
-                ws_message_to_vec(text.as_ref());
+                //ws_message_to_vec(text.as_ref());
 
                 ctx.text(text);
 
