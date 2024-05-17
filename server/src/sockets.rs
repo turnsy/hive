@@ -3,7 +3,7 @@ use actix::prelude::*;
 use actix_web_actors::ws;
 use actix::Actor;
 mod ops;
-use ops::ws_message_to_vec;
+use ops::handle_op_message;
 
 // heartbeat ping frequency
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
@@ -64,10 +64,15 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for HiveSocket {
             }
             Ok(ws::Message::Text(text)) => {
                 // echo back to caller
-                //ws_message_to_vec(text.as_ref());
-
-                ctx.text(text);
-
+                let msg = match handle_op_message(text.as_ref()) {
+                    Ok(res) => {
+                        res
+                    },
+                    Err(err) => {
+                        err.to_string()
+                    }
+                };
+                ctx.text(msg);
             },
             Ok(ws::Message::Binary(bin)) => ctx.binary(bin),
             Ok(ws::Message::Close(reason)) => {

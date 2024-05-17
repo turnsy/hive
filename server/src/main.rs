@@ -1,11 +1,14 @@
 use actix_web::{web, http, App, HttpResponse, HttpServer, HttpRequest, Error};
 use actix_cors::Cors;
 use actix_web_actors::ws;
+use actix_files as fs;
 
 mod sockets;
 use self::sockets::HiveSocket;
 
 const ALLOWED_ORIGIN: &str = "http://localhost:3000";
+
+
 
 // ws handshake and start HiveSocket actor
 async fn echo_ws(req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
@@ -24,6 +27,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(cors)
             .service(web::resource("/ws").route(web::get().to(echo_ws)))
+            .service(fs::Files::new("/static", "./files").show_files_listing())
     })
     .bind("0.0.0.0:8080")
     .expect("Server error")
