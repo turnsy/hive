@@ -1,15 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import './App.css';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import useWebSocket, {ReadyState} from 'react-use-websocket';
 import Markdown from 'react-markdown';
+import { DeltaStatic } from '../node_modules/react-quill/node_modules/@types/quill/index';
+import { handleSocketMessage } from './services/socket.utils';
 
 function App() {
-  const [content, setContent] = useState("");
+  // get reference to quill editor
+  const editorRef = useRef<ReactQuill>(null);
+
+  // set up web socket
   const socketUrl = "ws://localhost:8080/ws";
   const {sendMessage, lastMessage, readyState} = useWebSocket(socketUrl);
 
+  // used to display connection status
   const connectionStatus = {
     [ReadyState.CONNECTING]: 'Connecting',
     [ReadyState.OPEN]: 'Connected',
@@ -18,36 +24,28 @@ function App() {
     [ReadyState.UNINSTANTIATED]: 'Uninstantiated',
   }[readyState];
 
-  function handleChange(content: any, delta: any, source:any, editor:any) {
-    sendMessage(JSON.stringify(delta));
-    setContent(content);
+  // handleChange is used to actually fire off the websocket messages,
+  // whenever a user makes a change themselves
+  function handleChange(_value: string, delta: DeltaStatic, source: any, _editor: any) {
+    if (source === "user") {
+      sendMessage(JSON.stringify(delta));
+    }
   }
 
   useEffect(() => {
     if (lastMessage !== null) {
-      refreshContent();
+      handleSocketMessage(lastMessage, editorRef);
     }
   }, [lastMessage])
 
-  async function refreshContent() {
-    // get file data from server
-    
-    const res = await fetch('http://localhost:8080/static/test.txt');
-    const content = await res.text();
-    console.log(content);
- 
-  }
 
   return (
     <div className="App">
       <h1>Hive</h1>
       <div className="editorContainer">
-        <ReactQuill theme="snow" value={content} onChange={handleChange} />
+        <ReactQuill theme="snow" onChange={handleChange} ref={editorRef} />
       </div>
       <h6>Status: {connectionStatus} </h6>
-      <div>
-        <Markdown children={content} />
-      </div>
     </div>
   );
 }
