@@ -1,6 +1,6 @@
 import ReactQuill from "react-quill";
 import { MessageVariant } from "./socket.constants";
-import { DeltaStatic } from '../../node_modules/react-quill/node_modules/@types/quill/index';
+import { DeltaStatic } from 'react-quill/node_modules/@types/quill';
 
 export function handleSocketMessage(message: MessageEvent<any>, quillRef: React.RefObject<ReactQuill>) {
     const message_JSON = JSON.parse(message.data);

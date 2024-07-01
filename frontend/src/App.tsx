@@ -1,51 +1,27 @@
-import React, { useEffect, useRef } from 'react';
-import './App.css';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
-import useWebSocket, {ReadyState} from 'react-use-websocket';
-import Markdown from 'react-markdown';
-import { DeltaStatic } from '../node_modules/react-quill/node_modules/@types/quill/index';
-import { handleSocketMessage } from './services/socket.utils';
+import React from "react";
+import "./App.css";
+import "react-quill/dist/quill.snow.css";
+import Editor from "./core/components/editor/Editor";
+import { Button, Card, Col, Container, Row } from "react-bootstrap";
+import Sidebar from "./core/components/sidebar/Sidebar";
+import NavBar from "./core/components/navbar/Navbar";
 
-function App() {
-  // get reference to quill editor
-  const editorRef = useRef<ReactQuill>(null);
-
-  // set up web socket
-  const socketUrl = "ws://localhost:8080/ws";
-  const {sendMessage, lastMessage, readyState} = useWebSocket(socketUrl);
-
-  // used to display connection status
-  const connectionStatus = {
-    [ReadyState.CONNECTING]: 'Connecting',
-    [ReadyState.OPEN]: 'Connected',
-    [ReadyState.CLOSING]: 'Closing',
-    [ReadyState.CLOSED]: 'Closed',
-    [ReadyState.UNINSTANTIATED]: 'Uninstantiated',
-  }[readyState];
-
-  // handleChange is used to actually fire off the websocket messages,
-  // whenever a user makes a change themselves
-  function handleChange(_value: string, delta: DeltaStatic, source: any, _editor: any) {
-    if (source === "user") {
-      sendMessage(JSON.stringify(delta));
-    }
-  }
-
-  useEffect(() => {
-    if (lastMessage !== null) {
-      handleSocketMessage(lastMessage, editorRef);
-    }
-  }, [lastMessage])
-
-
+function App(): React.ReactElement {
   return (
     <div className="App">
-      <h1>Hive</h1>
-      <div className="editorContainer">
-        <ReactQuill theme="snow" onChange={handleChange} ref={editorRef} />
-      </div>
-      <h6>Status: {connectionStatus} </h6>
+      <Container fluid>
+        <Row>
+          <NavBar />
+        </Row>
+        <Row>
+          <Col sm={4} variant={"dark"}>
+            <Sidebar />
+          </Col>
+          <Col sm={8}>
+            <Editor />
+          </Col>
+        </Row>
+      </Container>
     </div>
   );
 }
