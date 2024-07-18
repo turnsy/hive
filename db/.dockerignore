@@ -1,0 +1,8 @@
+pb_data
+*.log
+.git
+.gitignore
+README.md
+.env*
+.dockerignore
+Dockerfile

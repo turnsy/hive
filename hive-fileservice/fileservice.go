@@ -13,7 +13,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const projectsDir = "../hive-projects"
+const projectsDir = "./projects"
 
 var (
 	fileLocks = make(map[string]*sync.Mutex)
