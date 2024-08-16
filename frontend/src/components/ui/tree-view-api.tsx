@@ -18,10 +18,13 @@ import {
   ContextMenuContent,
   ContextMenuItem,
 } from "./context-menu";
+import { useModalContext } from "@/shared/modals/modal-manager.context";
+import { ModalKey } from "@/shared/modals/types";
 
 type TreeViewElement = {
   id: string;
   name: string;
+  isDir: boolean;
   isSelectable?: boolean;
   children?: TreeViewElement[];
 };
@@ -243,6 +246,8 @@ const Folder = forwardRef<
       closeIcon,
     } = useTree();
 
+    const { openModal } = useModalContext();
+
     return (
       <AccordionPrimitive.Item
         {...props}
@@ -271,10 +276,22 @@ const Folder = forwardRef<
             </AccordionPrimitive.Trigger>
           </ContextMenuTrigger>
           <ContextMenuContent>
-            <ContextMenuItem onClick={() => fileOp("new", value)}>
+            <ContextMenuItem
+              onClick={() =>
+                openModal(ModalKey.newEntry, {
+                  path: value,
+                })
+              }
+            >
               New
             </ContextMenuItem>
-            <ContextMenuItem onClick={() => fileOp("rename", value)}>
+            <ContextMenuItem
+              onClick={() =>
+                openModal(ModalKey.renameEntry, {
+                  path: value,
+                })
+              }
+            >
               Rename
             </ContextMenuItem>
             <ContextMenuItem

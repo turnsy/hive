@@ -1,3 +1,5 @@
+"use client";
+
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -14,25 +16,18 @@ import {
   FileIcon,
 } from "@/components/icons/icons";
 import PocketBase from "pocketbase";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import CreateProjectModal from "./create-project-modal/create-project-modal";
 import { createProject } from "./services/projects.service";
 
-export default async function ProjectsDropdown() {
+export default function ProjectsDropdown() {
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [projects, setProjects] = useState<any[]>([]);
 
   const router = useRouter();
   const db = new PocketBase("http://127.0.0.1:8090");
   const userId = db.authStore.model?.id;
-
-  async function getProjects() {
-    const res = await db.collection("projects").getList(1, 50, {
-      sort: "-created",
-      filter: `user.id="${userId}"`,
-    });
-    return res.items as any[];
-  }
 
   const handleCreateProject = async (projectName: string) => {
     createProject(projectName, db).then((res) => {
@@ -44,7 +39,14 @@ export default async function ProjectsDropdown() {
     router.replace(`/projects/${id}`);
   };
 
-  const projects = await getProjects();
+  useEffect(() => {
+    db.collection("projects")
+      .getList(1, 50, {
+        sort: "-created",
+        filter: `user.id="${userId}"`,
+      })
+      .then((res) => setProjects(res.items));
+  }, []);
 
   return (
     <>

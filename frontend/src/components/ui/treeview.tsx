@@ -90,7 +90,7 @@ export const TreeItem = forwardRef<
       {elements &&
         elements.map((element) => (
           <li key={element.id} className="w-full">
-            {element.name.slice(-2) != "md" ? (
+            {element.isDir ? (
               <Folder
                 element={element.name}
                 value={element.id}

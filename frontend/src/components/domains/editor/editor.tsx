@@ -11,7 +11,7 @@ export default function Editor() {
   const [view, setView] = useState("edit");
   const [markdown, setMarkdown] = useState("");
 
-  const updateMarkdown = async (content: string) => {
+  const updateMarkdown = (content: string) => {
     setMarkdown(content);
   };
 

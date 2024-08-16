@@ -23,6 +23,7 @@ var (
 type FileItem struct {
 	ID       string     `json:"id"`
 	Name     string     `json:"name"`
+	IsDir    bool       `json:"isDir"`
 	Children []FileItem `json:"children"`
 }
 
@@ -30,7 +31,9 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/projects", createProjectHandler).Methods("POST")
 	r.HandleFunc("/projects/{project_id}", listProjectHandler).Methods("GET")
-	r.HandleFunc("/projects/{project_id}", newEntityHandler).Methods("POST")
+	r.HandleFunc("/projects/{project_id}", newEntryHandler).Methods("POST")
+	r.HandleFunc("/projects/{project_id}", renameEntryHandler).Methods("PATCH")
+	r.HandleFunc("/projects/{project_id}", deleteEntryHandler).Methods("DELETE")
 	log.Println("Server started on :8081")
 	log.Fatal(http.ListenAndServe(":8081", handlers.CORS()(r)))
 }
@@ -74,13 +77,15 @@ func listProjectHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(items)
 }
 
-func newEntityHandler(w http.ResponseWriter, r *http.Request) {
+func newEntryHandler(w http.ResponseWriter, r *http.Request) {
+
+	// TODO: convert this to check if last two chars are md
 	vars := mux.Vars(r)
 	project := vars["project_id"]
 
 	var req struct {
-		Path   string `json:"path"`
-		IsFile bool   `json:"isFile"`
+		Path  string `json:"path"`
+		IsDir bool   `json:"isDir"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -89,22 +94,76 @@ func newEntityHandler(w http.ResponseWriter, r *http.Request) {
 	fullPath := filepath.Join(projectsDir, project, req.Path)
 	lock := getFileLock(fullPath)
 	lock.Lock()
-	if req.IsFile {
-		if err := createFile(fullPath); err != nil {
-			log.Printf("Error creating file: %v", err)
-			http.Error(w, "Failed to create file", http.StatusInternalServerError)
-			return
-		}
-	} else {
+	if req.IsDir {
 		if err := createDir(fullPath); err != nil {
 			log.Printf("Error creating directory: %v", err)
 			http.Error(w, "Failed to create directory", http.StatusInternalServerError)
 			return
 		}
+	} else {
+		if err := createFile(fullPath); err != nil {
+			log.Printf("Error creating file: %v", err)
+			http.Error(w, "Failed to create file", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	log.Printf("Created new entry at %v", fullPath)
-	w.WriteHeader(http.StatusCreated)
+
+	// TODO: Check these statuses for correctness
+	w.WriteHeader(http.StatusOK)
+}
+
+func renameEntryHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	project := vars["project_id"]
+
+	var req struct {
+		Path   string `json:"path"`
+		Rename string `json:"rename"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	fullPath := filepath.Join(projectsDir, project, req.Path)
+	newPath := filepath.Join(filepath.Dir(fullPath), req.Rename)
+	lock := getFileLock(fullPath)
+	lock.Lock()
+
+	if err := os.Rename(fullPath, newPath); err != nil {
+		log.Printf("Error renaming entry: %v", err)
+		http.Error(w, "Failed to rename entry", http.StatusInternalServerError)
+		return
+	}
+
+	// TODO: check this log statement
+	log.Printf("Renamed entry at %v to %v", fullPath, newPath)
+	w.WriteHeader(http.StatusOK)
+}
+func deleteEntryHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	project := vars["project_id"]
+
+	var req struct {
+		Path string `json:"path"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	fullPath := filepath.Join(projectsDir, project, req.Path)
+	lock := getFileLock(fullPath)
+	lock.Lock()
+
+	if err := os.RemoveAll(fullPath); err != nil {
+		log.Printf("Error deleting entry: %v", err)
+		http.Error(w, "Failed to delete entry", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("Deleted entry at %v", fullPath)
+	w.WriteHeader(http.StatusOK)
 }
 
 // Helper functions for file locking
@@ -164,9 +223,11 @@ func getFileItems(dir string, start_id int) ([]FileItem, error) {
 				return nil, err
 			}
 			item.Children = children
+			item.IsDir = true
 			cur_id += len(children)
 		} else {
 			item.Children = []FileItem{}
+			item.IsDir = false
 		}
 		items = append(items, item)
 	}

@@ -1,6 +1,8 @@
 import Editor from "@/components/domains/editor/editor";
 import Header from "@/components/domains/header/header";
+import { FileSystemContextProvider } from "@/components/domains/sidebar/context/file-system.context";
 import Sidebar from "@/components/domains/sidebar/sidebar";
+import { ModalContextProvider } from "@/shared/modals/modal-manager.context";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -16,7 +18,11 @@ export default function Page({ params }: { params: { id: string } }) {
         direction="horizontal"
       >
         <ResizablePanel defaultSize={25}>
-          <Sidebar projectId={params.id} />
+          <FileSystemContextProvider projectId={params.id}>
+            <ModalContextProvider>
+              <Sidebar />
+            </ModalContextProvider>
+          </FileSystemContextProvider>
         </ResizablePanel>
         <ResizableHandle />
         <ResizablePanel defaultSize={75}>
