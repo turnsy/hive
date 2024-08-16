@@ -1,8 +1,16 @@
-export async function newFile(path: string, name: string) {
+export async function newEntry(
+  path: string,
+  projectId: string,
+  isFile: boolean
+) {
+  const fullPath = isFile ? path + ".md" : path;
   try {
-    const res = await fetch(`http://localhost:8081/projects/test_proj/file`, {
+    const res = await fetch(`http://localhost:8081/projects/${projectId}`, {
       method: "POST",
-      body: JSON.stringify({ path: `${path}/test.md` }),
+      body: JSON.stringify({
+        path: fullPath,
+        isFile: isFile,
+      }),
     });
     const data = await res.json();
     console.log(data);

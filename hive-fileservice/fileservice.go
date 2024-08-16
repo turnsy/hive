@@ -2,11 +2,11 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/gorilla/handlers"
@@ -28,13 +28,37 @@ type FileItem struct {
 
 func main() {
 	r := mux.NewRouter()
+	r.HandleFunc("/projects", createProjectHandler).Methods("POST")
 	r.HandleFunc("/projects/{project_id}", listProjectHandler).Methods("GET")
-	r.HandleFunc("/projects/{project_id}/file", newFileHandler).Methods("POST")
+	r.HandleFunc("/projects/{project_id}", newEntityHandler).Methods("POST")
 	log.Println("Server started on :8081")
 	log.Fatal(http.ListenAndServe(":8081", handlers.CORS()(r)))
 }
 
 // Endpoint handlers
+func createProjectHandler(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		DB_ID string `json:"db_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := os.MkdirAll(filepath.Join(projectsDir, req.DB_ID), 0750); err != nil {
+		log.Printf("Error creating project: %v", err)
+		http.Error(w, "Failed to create project", http.StatusInternalServerError)
+		return
+	}
+
+	// echo the ID back so service knows where to redirect on FE
+	w.Header().Set("Content-Type", "application/json")
+	res := map[string]string{"id": req.DB_ID}
+
+	log.Printf("Created new project at %v", req.DB_ID)
+	json.NewEncoder(w).Encode(res)
+}
+
 func listProjectHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	project := vars["project_id"]
@@ -44,34 +68,43 @@ func listProjectHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to list project", http.StatusInternalServerError)
 		return
 	}
+
+	w.Header().Set("Content-Type", "application/json")
 	log.Printf("Successfully listed project: %v", project)
 	json.NewEncoder(w).Encode(items)
 }
 
-func newFileHandler(w http.ResponseWriter, r *http.Request) {
+func newEntityHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	project := vars["project"]
+	project := vars["project_id"]
 
 	var req struct {
-		Path string `json:"path"`
+		Path   string `json:"path"`
+		IsFile bool   `json:"isFile"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
 	fullPath := filepath.Join(projectsDir, project, req.Path)
 	lock := getFileLock(fullPath)
 	lock.Lock()
-	if err := createFile(fullPath); err != nil {
-		log.Printf("Error creating file: %v", err)
-		http.Error(w, "Failed to create file", http.StatusInternalServerError)
-		return
+	if req.IsFile {
+		if err := createFile(fullPath); err != nil {
+			log.Printf("Error creating file: %v", err)
+			http.Error(w, "Failed to create file", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		if err := createDir(fullPath); err != nil {
+			log.Printf("Error creating directory: %v", err)
+			http.Error(w, "Failed to create directory", http.StatusInternalServerError)
+			return
+		}
 	}
 
-	log.Printf("Created file at %v", fullPath)
+	log.Printf("Created new entry at %v", fullPath)
 	w.WriteHeader(http.StatusCreated)
-
 }
 
 // Helper functions for file locking
@@ -119,7 +152,7 @@ func getFileItems(dir string, start_id int) ([]FileItem, error) {
 	// iterate through corrected entries to build entries list, recursively
 	for _, entry := range correctedEntries {
 		item := FileItem{
-			ID:   fmt.Sprintf("%d", cur_id),
+			ID:   removeParentDirs(filepath.Join(dir, entry.Name()), 2),
 			Name: entry.Name(),
 		}
 
@@ -144,4 +177,24 @@ func getFileItems(dir string, start_id int) ([]FileItem, error) {
 // Helper functions for file operations
 func createFile(path string) error {
 	return os.WriteFile(path, []byte{}, 0644)
+}
+func createDir(path string) error {
+	return os.Mkdir(path, 0755)
+}
+
+// this is helpful for path management
+func removeParentDirs(path string, parentsToRemove int) string {
+	// Clean the path to normalize it
+	cleanPath := filepath.Clean(path)
+
+	// Split the path into its components
+	parts := strings.Split(cleanPath, string(filepath.Separator))
+
+	// If we have fewer parts than parents to remove, return an empty string
+	if len(parts) <= parentsToRemove {
+		return ""
+	}
+
+	// Join the remaining parts
+	return filepath.Join(parts[parentsToRemove:]...)
 }

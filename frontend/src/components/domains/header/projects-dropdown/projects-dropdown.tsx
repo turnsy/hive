@@ -1,5 +1,3 @@
-"use client";
-
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -16,45 +14,37 @@ import {
   FileIcon,
 } from "@/components/icons/icons";
 import PocketBase from "pocketbase";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import CreateProjectModal from "./create-project-modal/create-project-modal";
+import { createProject } from "./services/projects.service";
 
-export default function ProjectsDropdown() {
-  const db = new PocketBase("http://127.0.0.1:8090");
-  const [projects, setProjects] = useState([]);
+export default async function ProjectsDropdown() {
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const userId = db.authStore.model?.id;
 
   const router = useRouter();
-  const getProjects = async () => {
+  const db = new PocketBase("http://127.0.0.1:8090");
+  const userId = db.authStore.model?.id;
+
+  async function getProjects() {
     const res = await db.collection("projects").getList(1, 50, {
       sort: "-created",
       filter: `user.id="${userId}"`,
     });
     return res.items as any[];
-  };
+  }
 
   const handleCreateProject = async (projectName: string) => {
-    // send a request to filesystem service to create folder on server
-
-    // create db entry
-    const res = await db.collection("projects").create({
-      name: projectName,
-      user: userId,
+    createProject(projectName, db).then((res) => {
+      router.replace(`${res.id}`);
     });
-
-    // redirect to new project
-    router.replace(`${res.id}`);
   };
 
   const goToProject = (id: string) => {
     router.replace(`/projects/${id}`);
   };
 
-  useEffect(() => {
-    getProjects().then((res) => setProjects(res));
-  }, []);
+  const projects = await getProjects();
 
   return (
     <>
@@ -71,7 +61,10 @@ export default function ProjectsDropdown() {
           <DropdownMenuSeparator />
           {projects?.map((project) => {
             return (
-              <DropdownMenuItem onClick={() => goToProject(project.id)}>
+              <DropdownMenuItem
+                key={project.id}
+                onClick={() => goToProject(project.id)}
+              >
                 <FileIcon className="h-4 w-4 mr-2" />
                 <div className="flex-1">
                   <div className="font-medium">{project.name}</div>

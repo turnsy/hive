@@ -213,7 +213,6 @@ type FolderProps = {
   element: string;
   isSelectable?: boolean;
   isSelect?: boolean;
-  path: string;
   fileOp: (op: string, path: string) => void;
 } & FolderComponentProps;
 
@@ -229,7 +228,6 @@ const Folder = forwardRef<
       isSelectable = true,
       isSelect,
       children,
-      path,
       fileOp,
       ...props
     },
@@ -273,14 +271,14 @@ const Folder = forwardRef<
             </AccordionPrimitive.Trigger>
           </ContextMenuTrigger>
           <ContextMenuContent>
-            <ContextMenuItem onClick={() => fileOp("new", path)}>
+            <ContextMenuItem onClick={() => fileOp("new", value)}>
               New
             </ContextMenuItem>
-            <ContextMenuItem onClick={() => fileOp("rename", path)}>
+            <ContextMenuItem onClick={() => fileOp("rename", value)}>
               Rename
             </ContextMenuItem>
             <ContextMenuItem
-              onClick={() => fileOp("delete", path)}
+              onClick={() => fileOp("delete", value)}
               className="text-red-600 focus:text-red-600 focus:bg-red-50"
             >
               Delete
@@ -317,7 +315,6 @@ const File = forwardRef<
     isSelectable?: boolean;
     isSelect?: boolean;
     fileIcon?: React.ReactNode;
-    path: string;
     fileOp: (op: string, path: string) => void;
   } & React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>
 >(
@@ -329,7 +326,6 @@ const File = forwardRef<
       isSelectable = true,
       isSelect,
       fileIcon,
-      path,
       fileOp,
       children,
       ...props
@@ -365,11 +361,11 @@ const File = forwardRef<
             </AccordionPrimitive.Trigger>
           </ContextMenuTrigger>
           <ContextMenuContent>
-            <ContextMenuItem onClick={() => fileOp("rename", path)}>
+            <ContextMenuItem onClick={() => fileOp("rename", value)}>
               Rename
             </ContextMenuItem>
             <ContextMenuItem
-              onClick={() => fileOp("delete", path)}
+              onClick={() => fileOp("delete", value)}
               className="text-red-600 focus:text-red-600 focus:bg-red-50"
             >
               Delete
