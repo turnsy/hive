@@ -3,5 +3,5 @@ export enum ModalKey {
   //deleteProject = "deleteProject",
   newEntry = "newEntry",
   renameEntry = "renameEntry",
-  //deleteEntity = "deleteEntity",
+  deleteEntry = "deleteEntry",
 }

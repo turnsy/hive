@@ -36,6 +36,11 @@ export default function RenameEntryModal({
   const { renameEntry } = useFileSystemContext();
   const { closeModal } = useModalContext();
 
+  const handleRenameEntry = async () => {
+    await renameEntry(path, entryRename);
+    closeModal();
+    closeModal();
+  };
   return (
     <Dialog defaultOpen={true}>
       <DialogTrigger asChild />
@@ -58,9 +63,7 @@ export default function RenameEntryModal({
             <Button variant="outline" onClick={closeModal}>
               Cancel
             </Button>
-            <Button onClick={() => renameEntry(path, entryRename)}>
-              Confirm
-            </Button>
+            <Button onClick={handleRenameEntry}>Confirm</Button>
           </div>
         </div>
       </DialogContent>

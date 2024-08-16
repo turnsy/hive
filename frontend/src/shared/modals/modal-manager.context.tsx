@@ -1,15 +1,17 @@
 "use client";
 
+import { createContext, useCallback, useContext, useState } from "react";
 import CreateProjectModal from "@/components/domains/header/projects-dropdown/create-project-modal/create-project-modal";
 import { ModalKey } from "./types";
 import NewEntryModal from "@/components/domains/sidebar/modals/new-entry.modal";
-import { createContext, useCallback, useContext, useState } from "react";
 import RenameEntryModal from "@/components/domains/sidebar/modals/rename-entry.modal";
+import DeleteEntryModal from "@/components/domains/sidebar/modals/delete-entry.modal";
 
 const ModalComponents: Record<ModalKey, React.ComponentType<any>> = {
   [ModalKey.createProject]: CreateProjectModal,
   [ModalKey.newEntry]: NewEntryModal,
   [ModalKey.renameEntry]: RenameEntryModal,
+  [ModalKey.deleteEntry]: DeleteEntryModal,
 };
 
 interface ModalContextResult {

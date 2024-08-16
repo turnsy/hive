@@ -38,8 +38,9 @@ export const FileSystemContextProvider = ({
 
   const fetchFileTree = useCallback(async () => {
     try {
-      console.log("fetching filetree");
-      const res = await fetch(`http://localhost:8081/projects/${projectId}`);
+      const res = await fetch(`http://localhost:8081/projects/${projectId}`, {
+        method: "GET",
+      });
       const data = await res.json();
       setFileTree(data);
     } catch (e) {
@@ -87,7 +88,7 @@ export const FileSystemContextProvider = ({
     async (path: string) => {
       try {
         const res = await fetch(`http://localhost:8081/projects/${projectId}`, {
-          method: "PATCH",
+          method: "DELETE",
           body: JSON.stringify({
             path,
           }),

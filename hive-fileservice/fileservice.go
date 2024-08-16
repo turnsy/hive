@@ -30,6 +30,7 @@ type FileItem struct {
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/projects", createProjectHandler).Methods("POST")
+	r.HandleFunc("/projects/{project_id}", optionsHandler).Methods("OPTIONS")
 	r.HandleFunc("/projects/{project_id}", listProjectHandler).Methods("GET")
 	r.HandleFunc("/projects/{project_id}", newEntryHandler).Methods("POST")
 	r.HandleFunc("/projects/{project_id}", renameEntryHandler).Methods("PATCH")
@@ -39,6 +40,12 @@ func main() {
 }
 
 // Endpoint handlers
+func optionsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, PATCH, DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+	w.WriteHeader(http.StatusOK)
+}
 func createProjectHandler(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		DB_ID string `json:"db_id"`

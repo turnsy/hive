@@ -295,7 +295,11 @@ const Folder = forwardRef<
               Rename
             </ContextMenuItem>
             <ContextMenuItem
-              onClick={() => fileOp("delete", value)}
+              onClick={() =>
+                openModal(ModalKey.deleteEntry, {
+                  path: value,
+                })
+              }
               className="text-red-600 focus:text-red-600 focus:bg-red-50"
             >
               Delete
