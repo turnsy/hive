@@ -28,24 +28,21 @@ type FileItem struct {
 }
 
 func main() {
+	corsMiddleware := handlers.CORS(
+		handlers.AllowedOrigins([]string{"*"}),
+		handlers.AllowedMethods([]string{"GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"}),
+		handlers.AllowedHeaders([]string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"}),
+	)
 	r := mux.NewRouter()
 	r.HandleFunc("/projects", createProjectHandler).Methods("POST")
-	r.HandleFunc("/projects/{project_id}", optionsHandler).Methods("OPTIONS")
 	r.HandleFunc("/projects/{project_id}", listProjectHandler).Methods("GET")
 	r.HandleFunc("/projects/{project_id}", newEntryHandler).Methods("POST")
 	r.HandleFunc("/projects/{project_id}", renameEntryHandler).Methods("PATCH")
 	r.HandleFunc("/projects/{project_id}", deleteEntryHandler).Methods("DELETE")
 	log.Println("Server started on :8081")
-	log.Fatal(http.ListenAndServe(":8081", handlers.CORS()(r)))
+	log.Fatal(http.ListenAndServe(":8081", corsMiddleware(r)))
 }
 
-// Endpoint handlers
-func optionsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, PATCH, DELETE")
-	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-	w.WriteHeader(http.StatusOK)
-}
 func createProjectHandler(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		DB_ID string `json:"db_id"`

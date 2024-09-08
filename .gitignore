@@ -1,4 +1,7 @@
 frontend/node_modules
-server/target
+socket-server/target
+hive-fileservice/projects/
+hive-fileservie/tmp/
+db/
 devlog/
 .DS_Store
