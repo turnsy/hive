@@ -39,7 +39,7 @@ export default function TextArea({ updateMarkdown }: TextAreaProps) {
   return (
     <div className="editorContainer">
       <ReactQuill
-        theme="bubble"
+        theme="snow"
         onChange={handleChange}
         ref={editorRef}
         className="border-0"

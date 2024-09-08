@@ -87,16 +87,13 @@ export const FileSystemContextProvider = ({
   const deleteEntry = useCallback(
     async (path: string) => {
       try {
-        const res = await fetch(`http://localhost:8081/projects/${projectId}`, {
+        await fetch(`http://localhost:8081/projects/${projectId}`, {
           method: "DELETE",
           body: JSON.stringify({
             path,
           }),
         });
-        const data = await res.json();
-        console.log(data);
         await fetchFileTree();
-        return data;
       } catch (e) {
         console.log(e);
       }
