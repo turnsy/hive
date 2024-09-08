@@ -67,7 +67,6 @@ export const TreeView = ({
             key={element.key}
             elements={[elements[element.index]]}
             indicator={indicator}
-            fileOp={() => {}}
           />
         ))}
       </Tree>
@@ -82,9 +81,8 @@ export const TreeItem = forwardRef<
   {
     elements?: TreeViewElement[];
     indicator?: boolean;
-    fileOp: (op: string, path: string) => void;
   } & React.HTMLAttributes<HTMLUListElement>
->(({ className, elements, indicator, fileOp, ...props }, ref) => {
+>(({ className, elements, indicator, ...props }, ref) => {
   return (
     <ul ref={ref} className="w-full space-y-1 " {...props}>
       {elements &&
@@ -95,23 +93,21 @@ export const TreeItem = forwardRef<
                 element={element.name}
                 value={element.id}
                 isSelectable={element.isSelectable}
-                fileOp={fileOp}
               >
                 <TreeItem
                   key={element.id}
                   aria-label={`folder ${element.name}`}
                   elements={element.children}
                   indicator={indicator}
-                  fileOp={fileOp}
                 />
               </Folder>
             ) : (
               <File
                 value={element.id}
+                name={element.name}
                 aria-label={`File ${element.name}`}
                 key={element.id}
                 isSelectable={element.isSelectable}
-                fileOp={fileOp}
               >
                 <span>{element?.name}</span>
               </File>

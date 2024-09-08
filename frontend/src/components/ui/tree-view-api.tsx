@@ -216,7 +216,6 @@ type FolderProps = {
   element: string;
   isSelectable?: boolean;
   isSelect?: boolean;
-  fileOp: (op: string, path: string) => void;
 } & FolderComponentProps;
 
 const Folder = forwardRef<
@@ -231,7 +230,6 @@ const Folder = forwardRef<
       isSelectable = true,
       isSelect,
       children,
-      fileOp,
       ...props
     },
     ref
@@ -289,6 +287,7 @@ const Folder = forwardRef<
               onClick={() =>
                 openModal(ModalKey.renameEntry, {
                   path: value,
+                  name: element,
                 })
               }
             >
@@ -298,6 +297,7 @@ const Folder = forwardRef<
               onClick={() =>
                 openModal(ModalKey.deleteEntry, {
                   path: value,
+                  name: element,
                 })
               }
               className="text-red-600 focus:text-red-600 focus:bg-red-50"
@@ -332,27 +332,29 @@ const File = forwardRef<
   HTMLButtonElement,
   {
     value: string;
+    name?: string;
     handleSelect?: (id: string) => void;
     isSelectable?: boolean;
     isSelect?: boolean;
     fileIcon?: React.ReactNode;
-    fileOp: (op: string, path: string) => void;
   } & React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>
 >(
   (
     {
       value,
+      name,
       className,
       handleSelect,
       isSelectable = true,
       isSelect,
       fileIcon,
-      fileOp,
       children,
       ...props
     },
     ref
   ) => {
+    const { openModal } = useModalContext();
+
     const { direction, selectedId, selectItem } = useTree();
     const isSelected = isSelect ?? selectedId === value;
     return (
@@ -382,11 +384,23 @@ const File = forwardRef<
             </AccordionPrimitive.Trigger>
           </ContextMenuTrigger>
           <ContextMenuContent>
-            <ContextMenuItem onClick={() => fileOp("rename", value)}>
+            <ContextMenuItem
+              onClick={() =>
+                openModal(ModalKey.renameEntry, {
+                  path: value,
+                  name: name,
+                })
+              }
+            >
               Rename
             </ContextMenuItem>
             <ContextMenuItem
-              onClick={() => fileOp("delete", value)}
+              onClick={() =>
+                openModal(ModalKey.deleteEntry, {
+                  path: value,
+                  name: name,
+                })
+              }
               className="text-red-600 focus:text-red-600 focus:bg-red-50"
             >
               Delete

@@ -7,23 +7,42 @@ import { PlusIcon } from "@/components/icons/icons";
 import { useFileSystemContext } from "./context/file-system.context";
 import { useModalContext } from "@/shared/modals/modal-manager.context";
 import { ModalKey } from "@/shared/modals/types";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import { Button } from "@/components/ui/button";
 
 interface SidebarProps {}
 export default function Sidebar({}: SidebarProps) {
   const { fileTree } = useFileSystemContext();
   const { openModal } = useModalContext();
-  const fileOp = (op: string, path: string) => {
-    console.log(op);
-    console.log(path);
-  };
+
   return (
-    <nav className="flex h-[100%] flex-col gap-2 border-r bg-background p-2">
+    <nav className="flex h-[100%] flex-col gap-2 border-r bg-background p-2 overflow-auto">
       {fileTree && fileTree.length > 0 ? (
-        <Tree className="w-full h-60 bg-background rounded-md" indicator={true}>
-          {fileTree.map((element, _) => (
-            <TreeItem key={element.id} elements={[element]} fileOp={fileOp} />
-          ))}
-        </Tree>
+        <>
+          <Tree
+            className="w-full h-100 bg-background rounded-md"
+            indicator={true}
+          >
+            {fileTree.map((element, _) => (
+              <TreeItem key={element.id} elements={[element]} />
+            ))}
+          </Tree>
+
+          <Button
+            onClick={() =>
+              openModal(ModalKey.newEntry, {
+                path: "/",
+              })
+            }
+          >
+            New File/Directory
+          </Button>
+        </>
       ) : (
         <div
           className="flex self-center h-[100%] w-[100%] items-center justify-center rounded-md border border-black border-dashed text-md"

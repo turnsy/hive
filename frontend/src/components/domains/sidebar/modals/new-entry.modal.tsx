@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { useFileSystemContext } from "../context/file-system.context";
 import { useModalContext } from "@/shared/modals/modal-manager.context";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface NewEntryModalProps {
   path: string;
@@ -28,13 +29,13 @@ interface NewEntryModalProps {
 
 export default function NewEntryModal({ path }: NewEntryModalProps) {
   const [entryName, setEntryName] = useState("");
-  const [isDir, setIsDir] = useState(false);
+  const [entryType, setEntryType] = useState("file");
 
   const { newEntry } = useFileSystemContext();
   const { closeModal } = useModalContext();
 
   const handleNewEntry = async () => {
-    await newEntry(path + "/" + entryName, isDir);
+    await newEntry(path + "/" + entryName, entryType === "dir");
     closeModal();
   };
   return (
@@ -42,7 +43,7 @@ export default function NewEntryModal({ path }: NewEntryModalProps) {
       <DialogTrigger asChild />
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
-          <DialogTitle>New File or Folder</DialogTitle>
+          <DialogTitle>New File or Directory</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
@@ -55,7 +56,15 @@ export default function NewEntryModal({ path }: NewEntryModalProps) {
             />
           </div>
           <div className="grid gap-2">
-            {/* TODO: a select dropdown should live here. */}
+            {/* TODO: a shadcn dropdown should live here. */}
+            <select
+              className="border rounded-md h-10 p-2 focus:border-black"
+              value={entryType}
+              onChange={(e) => setEntryType(e.target.value)}
+            >
+              <option value="file">File</option>
+              <option value="dir">Directory</option>
+            </select>
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={closeModal}>

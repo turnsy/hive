@@ -24,9 +24,13 @@ import { useModalContext } from "@/shared/modals/modal-manager.context";
 
 interface DeleteEntryModalProps {
   path: string;
+  name: string;
 }
 
-export default function DeleteEntryModal({ path }: DeleteEntryModalProps) {
+export default function DeleteEntryModal({
+  path,
+  name,
+}: DeleteEntryModalProps) {
   const { deleteEntry } = useFileSystemContext();
   const { closeModal } = useModalContext();
 
@@ -39,7 +43,7 @@ export default function DeleteEntryModal({ path }: DeleteEntryModalProps) {
       <DialogTrigger asChild />
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
-          <DialogTitle>Are you sure you want to delete?</DialogTitle>
+          <DialogTitle>{`Are you sure you want to delete ${name}?`}</DialogTitle>
         </DialogHeader>
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={closeModal}>

@@ -24,21 +24,22 @@ import { useModalContext } from "@/shared/modals/modal-manager.context";
 
 interface RenameEntryModalProps {
   path: string;
+  name: string;
   isDir: boolean;
 }
 
 export default function RenameEntryModal({
   path,
+  name,
   isDir,
 }: RenameEntryModalProps) {
-  const [entryRename, setEntryRename] = useState("");
+  const [entryRename, setEntryRename] = useState(name);
 
   const { renameEntry } = useFileSystemContext();
   const { closeModal } = useModalContext();
 
   const handleRenameEntry = async () => {
     await renameEntry(path, entryRename);
-    closeModal();
     closeModal();
   };
   return (
